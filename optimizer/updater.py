@@ -9,6 +9,7 @@ Created on Mon Jan 15 12:48:49 2018
 import numpy as np
 from utils.ic import _compute_ic
 from utils.sampling import lhs_sampling
+from gauss_process.gauss_process import GaussianProcess
 
 class Updater(object):
 
@@ -16,6 +17,11 @@ class Updater(object):
 
         self.gp = gaussian_process
         self.param = parameters
+        
+        if self.param['mode'] == 'elgowlm':
+            self.gp_local = GaussianProcess(self.gp.x_sample, self.gp.y_sample)
+            self.init_x_sample = self.gp.x_sample
+            self.init_y_sample = self.gp.y_sample
         
         self.x_local = self.gp.x_sample[self.gp.y_sample.argmin()]
         self.y_local = self.gp.y_sample.min()
@@ -25,7 +31,7 @@ class Updater(object):
 
     def enforcing_func(self, x):
 
-        return 10**(-1) * (x / self.param['init_step_size'])**(2)
+        return 10**(-2) * (x / self.param['init_step_size'])**(2)
 
 
     def _set_step_size(self, succesful):
@@ -59,7 +65,6 @@ class Updater(object):
                 self.x_local = x_trial
                 self.y_local = y_trial
                 self.step_size = self.param['init_step_size']
-                print("1__ Global search success")
 
             else:
                 x = self.gp.enrich_model(local_bounds)
@@ -73,6 +78,31 @@ class Updater(object):
                     self._set_step_size(False)
 
                 self.gp.add_sample(x, y)
+        
+        if self.param['mode'] == 'elgowlm':
+
+            if y_trial <= self.y_local - self.enforcing_func(self.step_size):
+                self.x_local = x_trial
+                self.y_local = y_trial
+                self.step_size = self.param['init_step_size']
+                self.gp_local.__init__(self.init_x_sample, self.init_y_sample)
+                self.gp_local.add_sample(x_trial, y_trial)
+
+            else:
+                x = self.gp.enrich_model(local_bounds)
+                y = obj_func.evaluate(x)
+                
+                if y <= self.y_local - self.enforcing_func(self.step_size):
+                    self.x_local = x
+                    self.y_local = y
+                    self._set_step_size(True)
+                else:
+                    self._set_step_size(False)
+                
+                self.gp_local.add_sample(x, y)
+                
+                if self.gp_local.y_sample.size > 5 * (obj_func.func_id[1] + 1):
+                    self.gp_local.remove_sample(self.gp_local.y_sample.argmax())
 
 
         if self.param['mode'] == 'trike':

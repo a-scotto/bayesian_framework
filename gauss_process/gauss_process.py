@@ -18,11 +18,11 @@ class GaussianProcess(object):
         self.x_sample = np.atleast_2d(x_sample)
         self.y_sample = np.atleast_2d(y_sample)
         
-        self.cov_matrix = CovarianceMatrix(x_sample, kernel)
-        self.cov_matrix._fit_hyper_param(y_sample)
+        self.cov_matrix = CovarianceMatrix(self.x_sample, kernel)
+        self.cov_matrix._fit_hyper_param(self.y_sample)
         self.K = self.cov_matrix.get_covariance_matrix()
         
-        self.regressor = Regressor(x_sample, y_sample)
+        self.regressor = Regressor(self.x_sample, self.y_sample)
         
         self.solved = self._solve()
        
@@ -30,8 +30,8 @@ class GaussianProcess(object):
     def _solve(self):
         
         solved = {}
-        
-        e = np.ones((self.y_sample.size))
+        n = self.y_sample.size
+        e = np.ones((n))
         m_x = self.regressor.predict(self.x_sample)
         
         try:
@@ -39,13 +39,13 @@ class GaussianProcess(object):
             solved['y_sample'] = lg.solve(L.T, lg.solve(L, self.y_sample))
             solved['e'] = lg.solve(L.T, lg.solve(L, e))
             solved['m_x'] = lg.solve(L.T, lg.solve(L, m_x))
-            solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x'])
+            solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x']) / n
         
         except lg.LinAlgError:
             solved['y_sample'] = lg.solve(self.K, self.y_sample)
             solved['e'] = lg.solve(self.K, e)
             solved['m_x'] = lg.solve(self.K, m_x)
-            solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x'])
+            solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x']) / n
             
         return solved
     

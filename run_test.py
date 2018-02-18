@@ -17,15 +17,15 @@ def main(i=0):
 
     # FILES PARAMETERS
     testFileName = 'fullDimension'
-    box_size = 10.0
+    box_size = 50.0
     tolerance = 1e-5
     
     # SOLVER INSTANCIATION
-    egoModeTested = ['gcego_restart', 'trike_restart', 'trike']
+    egoModeTested = ['elgowlm', 'elgo', 'gcego']
     solvers = []
 
     for mode in egoModeTested:
-        solvers.append(BayesianOptimizer(Parameter({'mode' : mode, 'verbosity' : True})))
+        solvers.append(BayesianOptimizer(Parameter({'mode' : mode, 'verbosity' : False})))
 
     # DATA INITIALIZATION
     functionSet = extract_test_set(testFileName + '.txt')
@@ -58,9 +58,8 @@ def main(i=0):
         p = []
 
         for s in solvers:
-            s.initialize(x_sample, obj_func)
             t_start = time.time()
-            evals, cost, x_opt = s.run(max_budget=max_budget, tolerance=tolerance)
+            evals, cost, x_opt = s.run(obj_func, x_sample, max_budget, tolerance)
             p.append(evals)
             obj_func.reset()
             
