@@ -21,7 +21,7 @@ def main(i=0):
     tolerance = 1e-5
     
     # SOLVER INSTANCIATION
-    egoModeTested = ['elgowlm', 'elgo', 'gcego']
+    egoModeTested = ['elgo', 'elgowlm', 'gcego']
     solvers = []
 
     for mode in egoModeTested:
@@ -47,9 +47,9 @@ def main(i=0):
         d = obj_func.func_id[1]
         
         if tolerance == 0:
-            max_budget = max(25 * (d + 1), 500)
+            max_budget = max(25 * (d + 1), 400)
         else:
-            max_budget = 50 * (d + 1)
+            max_budget = max(100 * (d + 1), 800)
 
         obj_func.set_bounds(box_size)
         x_sample = lhs_sampling(2 * (d + 1), d, obj_func.bounds)
