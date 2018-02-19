@@ -6,6 +6,10 @@
 # C extensions
 *.so
 
+# Untracked files
+results/*
+run_test.py
+
 # Distribution / packaging
 .Python
 env/
