@@ -78,6 +78,8 @@ class BayesianOptimizer(object):
             
             if gp.y_sample.size > 10 * (obj_func.func_id[1] + 1):
                 gp.remove_sample(gp.y_sample.argmax())
+                if self.param['mode'] == 'elgo':
+                    gp.remove_sample(gp.y_sample.argmax())
             
             k = k + 1
             
@@ -88,9 +90,9 @@ class BayesianOptimizer(object):
                 print("#     Step size = ", step_size)
                 print("#       Global model size = ", gp.y_sample.size)
                 print("#       Global value found = ", y_trial)
-                print()
-                print("#       Local model size = ", updater.gp_local.y_sample.size)
-                print("#       Local value found = ", updater.gp_local.y_sample[-1])
+                if self.param['mode'] == 'elgowlm':
+                    print("#       Local model size = ", updater.gp_local.y_sample.size)
+                    print("#       Local value found = ", updater.gp_local.y_sample[-1])
                 print("#     Current center = ", updater.y_local)
                 print("#     Best value = ", min(obj_func.evals))
                 print()

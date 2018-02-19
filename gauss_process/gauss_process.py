@@ -114,6 +114,6 @@ class GaussianProcess(object):
         
         self.y_sample = np.delete(self.y_sample, index, axis=0)
         self.x_sample = np.delete(self.x_sample, index, axis=0)
-
+        
         self.cov_matrix.remove_sample(index)
         self._fit_process()
