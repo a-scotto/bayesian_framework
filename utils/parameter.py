@@ -75,6 +75,6 @@ class Parameter(object):
                 raise ValueError('{} is not defined. See infill criteria list.'.format(param_value))
         
         elif par == 'mode':            
-            if param_value not in ['ego', 'elgo', 'gcego', 'gcego_restart', 'trike', 'trike_restart', 'elgowlm']:
+            if param_value not in ['ego', 'elgo', 'gcego', 'gcego_restart', 'trike', 'trike_restart', 'elgowlm', 'elgowlmrestart']:
                 raise ValueError('{} is not defined. See mode list.'.format(param_value))
         

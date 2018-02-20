@@ -18,7 +18,7 @@ class Updater(object):
         self.gp = gaussian_process
         self.param = parameters
         
-        if self.param['mode'] == 'elgowlm':
+        if self.param['mode'] in ['elgowlm', 'elgowlmrestart']:
             self.init_x_sample = self.gp.x_sample
             self.init_y_sample = self.gp.y_sample
             self.gp_local = GaussianProcess(self.init_x_sample, self.init_y_sample)
@@ -79,7 +79,33 @@ class Updater(object):
 
                 self.gp.add_sample(x, y)
         
+        
         if self.param['mode'] == 'elgowlm':
+
+            if y_trial <= self.y_local - self.enforcing_func(self.step_size):
+                self.x_local = x_trial
+                self.y_local = y_trial
+                self.step_size = self.param['init_step_size']
+                self.gp_local.add_sample(x_trial, y_trial)
+
+            else:
+                x = self.gp_local.enrich_model(local_bounds)
+                y = obj_func.evaluate(x)
+                
+                if y <= self.y_local - self.enforcing_func(self.step_size):
+                    self.x_local = x
+                    self.y_local = y
+                    self._set_step_size(True)
+                else:
+                    self._set_step_size(False)
+                
+                self.gp_local.add_sample(x, y)
+                
+                if self.gp_local.y_sample.size > 8 * (obj_func.func_id[1] + 1):
+                    self.gp_local.remove_sample(self.gp_local.y_sample.argmax())
+
+
+        if self.param['mode'] == 'elgowlmrestart':
 
             if y_trial <= self.y_local - self.enforcing_func(self.step_size):
                 self.x_local = x_trial
