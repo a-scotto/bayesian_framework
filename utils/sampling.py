@@ -80,11 +80,14 @@ if __name__ == "__main__":
 
     xcoord = np.linspace(bounds[0][0], bounds[0][1], n + 1)
     for xc in xcoord:
-        plt.axvline(x = xc)
+        plt.axvline(x = xc, c='black', lw=0.5)
 
     ycoord = np.linspace(bounds[1][0], bounds[1][1], n + 1)
     for yc in ycoord:
-        plt.axhline(y = yc)
+        plt.axhline(y = yc, c='black', lw=0.5)
 
     plt.axis([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]])
-    plt.plot(sample[:, 0], sample[:, 1], 'r*')
+    plt.title('Latin Hypercube Sampling example')
+    plt.xlabel('Decision variable 1')
+    plt.ylabel('Decision variable 2')
+    plt.plot(sample[:, 0], sample[:, 1], 'r+', mew=1.2, ms=10.)
