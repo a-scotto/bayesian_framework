@@ -18,11 +18,11 @@ class GaussianProcess(object):
         self.x_sample = np.atleast_2d(x_sample)
         self.y_sample = np.atleast_2d(y_sample)
         
-        self.cov_matrix = CovarianceMatrix(self.x_sample, kernel)
-        self.cov_matrix._fit_hyper_param(self.y_sample)
-        self.K = self.cov_matrix.get_covariance_matrix()
+        self.regressor = Regressor(x_sample, y_sample)
         
-        self.regressor = Regressor(self.x_sample, self.y_sample)
+        self.cov_matrix = CovarianceMatrix(self.x_sample, kernel)
+        self.cov_matrix._fit_hyper_param(self.y_sample - self.regressor.predict(self.x_sample))
+        self.K = self.cov_matrix.get_covariance_matrix()
         
         self.solved = self._solve()
        
@@ -31,19 +31,16 @@ class GaussianProcess(object):
         
         solved = {}
         n = self.y_sample.size
-        e = np.ones((n))
         m_x = self.regressor.predict(self.x_sample)
         
         try:
             L = lg.cholesky(self.K)
             solved['y_sample'] = lg.solve(L.T, lg.solve(L, self.y_sample))
-            solved['e'] = lg.solve(L.T, lg.solve(L, e))
             solved['m_x'] = lg.solve(L.T, lg.solve(L, m_x))
             solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x']) / n
         
         except lg.LinAlgError:
             solved['y_sample'] = lg.solve(self.K, self.y_sample)
-            solved['e'] = lg.solve(self.K, e)
             solved['m_x'] = lg.solve(self.K, m_x)
             solved['var'] = (self.y_sample - m_x).T.dot(solved['y_sample'] - solved['m_x']) / n
             
@@ -60,7 +57,7 @@ class GaussianProcess(object):
         
         d = np.abs(x - self.x_sample)        
         r = self.cov_matrix.kernel_func(d, self.cov_matrix.theta)
-        
+        self._solve()
         return self.regressor.predict(x) + r.dot(self.solved['y_sample'] - self.solved['m_x'])
         
    
@@ -74,17 +71,12 @@ class GaussianProcess(object):
         
         d = np.abs(x - self.x_sample)
         r = self.cov_matrix.kernel_func(d, self.cov_matrix.theta)
-        r_solved = lg.solve(self.K, r)
         
-        e = np.ones((self.y_sample.size))
+        b = float(r.T.dot(lg.solve(self.K, r)))
+        self._solve()
+        s = self.solved['var'] * (1 - b)
         
-        a = float(e.T.dot(self.solved['e']))
-        b = float(r.T.dot(r_solved))
-        c = float(e.T.dot(r_solved))
-        
-        s = self.solved['var'] * (1 - b + (1 - c)**2 / a)
-        
-        return max(0, s)
+        return max(0., s)
     
     def enrich_model(self, bounds, crit='exp_imp'):
         
