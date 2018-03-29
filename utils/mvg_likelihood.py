@@ -15,28 +15,35 @@ def mvg_likelihood(y_sample, cov_matrix):
     param_bounds = []
     
     for i in range(d):  
-        param_bounds.append((-3, 5)) 
+        param_bounds.append((-3, 3)) 
     
-    optimal_theta = differential_evolution(lambda l: cnl_likelihood(y_sample, cov_matrix, l), param_bounds, maxiter=2)
+    optimal_theta = differential_evolution(lambda l: cnl_likelihood(y_sample, cov_matrix, l), param_bounds, maxiter=3)
     
     return 10**optimal_theta.x
 
 
-def cnl_likelihood(y_sample, cov_matrix, length_scale):
+def cnl_likelihood(y_sample, cov_matrix, length_scale, regularize=True, tol=1e15):
     
     length_scale = 10**length_scale
+    n = y_sample.size
     
     K = cov_matrix.kernel_func(cov_matrix.codist_matrix, length_scale)
     
-    try:
-        L = lg.cholesky(K)
-        
-    except lg.LinAlgError:
-        return 1e15
+    if lg.cond(K) > tol:
+        return lg.cond(K)**0.5
+    else :
+        try:
+            L = lg.cholesky(K)
+        except lg.LinAlgError:
+            return lg.cond(K)**0.5
     
-    modeling_capacity = np.log10(np.abs(np.prod(L.diagonal())))
-    data_fit = y_sample.T.dot(lg.solve(L.T, lg.solve(L, y_sample)))
-    reg = lg.norm(length_scale)
+    modeling_capacity = np.log(np.abs(np.prod(L.diagonal())))
+    data_fit = n * np.log(y_sample.T.dot(lg.solve(L.T, lg.solve(L, y_sample))) / n)
     
-    return 1 / 2 * (modeling_capacity + data_fit) + 1e-3 * reg
+    if regularize:
+        return modeling_capacity + data_fit + 1e-2 * lg.norm(length_scale) + 1e-2 * lg.cond(K)**0.25
+    else:
+        return modeling_capacity + data_fit
+    
+    
     

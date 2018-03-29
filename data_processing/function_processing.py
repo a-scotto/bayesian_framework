@@ -11,7 +11,7 @@ import pickle
 from numpy import zeros
 from numpy.random import rand
 from scipy.optimize import basinhopping
-from functions_bib.function_generator import getTestFunction
+from functions_bib.function_generator import get_func
 
 class Function(object):
 
@@ -73,7 +73,7 @@ def extract_test_set(file_name):
 
                 for modification_type in modes.split(","):
                     modification_type = int(modification_type)
-                    f = getTestFunction(func_number, d, m, modification_type)
+                    f = get_func(func_number, d, m, modification_type)
                     function_set.append(Function(f, func_number, d, m, modification_type))
 
             except:

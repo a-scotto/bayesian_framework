@@ -77,7 +77,9 @@ if __name__ == "__main__":
 
     bounds = [(0, 1), (0, 1)]
     sample = lhs_sampling(n, 2, bounds)
-
+    
+    fig = plt.figure(figsize=(16, 16))
+    
     xcoord = np.linspace(bounds[0][0], bounds[0][1], n + 1)
     for xc in xcoord:
         plt.axvline(x = xc, c='black', lw=0.5)
@@ -85,9 +87,9 @@ if __name__ == "__main__":
     ycoord = np.linspace(bounds[1][0], bounds[1][1], n + 1)
     for yc in ycoord:
         plt.axhline(y = yc, c='black', lw=0.5)
-
+        
     plt.axis([bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]])
     plt.title('Latin Hypercube Sampling example')
     plt.xlabel('Decision variable 1')
     plt.ylabel('Decision variable 2')
-    plt.plot(sample[:, 0], sample[:, 1], 'r+', mew=1.2, ms=10.)
+    plt.plot(sample[:, 0], sample[:, 1], 'r+', mew=2.5, ms=20.)

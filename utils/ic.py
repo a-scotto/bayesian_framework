@@ -15,20 +15,19 @@ def _compute_ic(gaussian_proc, x, crit='exp_imp'):
 
     y = gaussian_proc.infer_value(x)
     s = np.sqrt(gaussian_proc.estimate_mse(x))
-    
     y_min = gaussian_proc.y_sample.min()
 
     if crit == 'exp_imp':
-        if s == 0:
+        if s == 0.:
             ic = 0.
         elif s > 0:
             y_red = (y_min - y) / s
             ic = (y_min - y) * norm.cdf(y_red) + s * norm.pdf(y_red)
     
     elif crit == 'wb2':
-        if s == 0:
+        if s == 0.:
             ic = - y
-        elif s > 0:
+        elif s > 0.:
             y_red = (y_min - y) / s
             ic = - y + (y_min - y) * norm.cdf(y_red) + s * norm.pdf(y_red)
 
