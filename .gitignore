@@ -9,6 +9,9 @@
 # Untracked files
 results/*
 run_test.py
+demo.py
+plot.py
+report_plot.py
 
 # Distribution / packaging
 .Python
