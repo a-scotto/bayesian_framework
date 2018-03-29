@@ -10,9 +10,9 @@ from sklearn.kernel_ridge import KernelRidge
 
 class Regressor(object):
     
-    def __init__(self, x_sample, y_sample, degree=0):
+    def __init__(self, x_sample, y_sample, degree=2):
         
-        self.reg = KernelRidge(alpha=1e-5, degree=degree)
+        self.reg = KernelRidge(alpha=1e-5, kernel='polynomial', degree=degree)
         self.reg.fit(x_sample, y_sample)
 
 
