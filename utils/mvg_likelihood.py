@@ -30,20 +30,23 @@ def cnl_likelihood(y_sample, cov_matrix, length_scale, regularize=True, tol=1e15
     K = cov_matrix.kernel_func(cov_matrix.codist_matrix, length_scale)
     
     if lg.cond(K) > tol:
-        return lg.cond(K)**0.5
+        output = lg.cond(K)**0.5
     else :
         try:
             L = lg.cholesky(K)
+
+            modeling_capacity = np.log(np.abs(np.prod(L.diagonal())))
+            data_fit = n * np.log(y_sample.T.dot(lg.solve(L.T, lg.solve(L, y_sample))) / n)
+
+            if regularize:
+                output = modeling_capacity + data_fit + 1e-2 * lg.norm(length_scale) + 1e-2 * lg.cond(K)**0.25
+            else:
+                output = modeling_capacity + data_fit
+
         except lg.LinAlgError:
-            return lg.cond(K)**0.5
-    
-    modeling_capacity = np.log(np.abs(np.prod(L.diagonal())))
-    data_fit = n * np.log(y_sample.T.dot(lg.solve(L.T, lg.solve(L, y_sample))) / n)
-    
-    if regularize:
-        return modeling_capacity + data_fit + 1e-2 * lg.norm(length_scale) + 1e-2 * lg.cond(K)**0.25
-    else:
-        return modeling_capacity + data_fit
+            output = lg.cond(K)**0.5
+
+    return float(output)
     
     
     

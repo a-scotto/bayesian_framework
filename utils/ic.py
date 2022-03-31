@@ -34,7 +34,7 @@ def _compute_ic(gaussian_proc, x, crit='exp_imp'):
     else:
         raise ValueError('Infill criterion "{}" not defined.'.format(crit))
 
-    return ic
+    return float(ic)
 
 
 def maximize_ic(gaussian_proc, bounds, crit='exp_imp'):
